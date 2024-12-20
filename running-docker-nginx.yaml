@@ -1,0 +1,34 @@
+---
+- name: Deploy Nginx container using Docker
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Ensure Docker service is running
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Pull the Nginx Docker image
+      community.docker.docker_image:
+        name: nginx
+        tag: latest
+        source: pull
+
+    - name: Run Nginx container
+      community.docker.docker_container:
+        name: nginx-container
+        image: nginx:latest
+        state: started
+        ports:
+          - "9080:80"
+
+    - name: Verify if the container is running
+      ansible.builtin.shell: "docker ps | grep nginx-container"
+      register: container_status
+      failed_when: container_status.rc != 0
+
+    - name: Print success message
+      ansible.builtin.debug:
+        msg: "Nginx container is running and accessible on port 9080."
