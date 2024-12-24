@@ -33,18 +33,14 @@
       ansible.builtin.docker_container:
         name: "{{ phpmyadmin_container_name }}"
         image: "{{ phpmyadmin_image }}"
-        state: started
-        restart_policy: always
-        networks:
-          - name: "{{ docker_network_name }}"
         env:
           PMA_HOST: "{{ mariadb_container_name }}"
           PMA_PORT: "{{ mariadb_port }}"
-          PMA_USER: "{{ mariadb_user }}"
-          PMA_PASSWORD: "{{ mariadb_password }}"
         ports:
           - "{{ phpmyadmin_port }}:80"
-
+        networks:
+          - name: "{{ docker_network_name }}"
+          
     - name: Wait for phpMyAdmin to be ready
       ansible.builtin.wait_for:
         host: "127.0.0.1"
