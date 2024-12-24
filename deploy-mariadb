@@ -1,0 +1,52 @@
+---
+- name: Setup Docker environment for MariaDB and phpMyAdmin
+  hosts: all
+  tasks:
+    - name: Create Docker network
+      ansible.builtin.docker_network:
+        name: "{{ docker_network_name }}"
+        driver: bridge
+
+    - name: Run MariaDB container
+      ansible.builtin.docker_container:
+        name: "{{ mariadb_container_name }}"
+        image: "{{ mariadb_image }}"
+        state: started
+        restart_policy: always
+        networks:
+          - name: "{{ docker_network_name }}"
+        env:
+          MYSQL_ROOT_PASSWORD: "{{ mariadb_root_password }}"
+          MYSQL_DATABASE: "{{ mariadb_database }}"
+          MYSQL_USER: "{{ mariadb_user }}"
+          MYSQL_PASSWORD: "{{ mariadb_password }}"
+        ports:
+          - "{{ mariadb_port }}:3306"
+
+    - name: Wait for MariaDB to be ready
+      ansible.builtin.wait_for:
+        host: "127.0.0.1"
+        port: "{{ mariadb_port }}"
+        timeout: 30
+
+    - name: Run phpMyAdmin container
+      ansible.builtin.docker_container:
+        name: "{{ phpmyadmin_container_name }}"
+        image: "{{ phpmyadmin_image }}"
+        state: started
+        restart_policy: always
+        networks:
+          - name: "{{ docker_network_name }}"
+        env:
+          PMA_HOST: "{{ mariadb_container_name }}"
+          PMA_PORT: "{{ mariadb_port }}"
+          PMA_USER: "{{ mariadb_user }}"
+          PMA_PASSWORD: "{{ mariadb_password }}"
+        ports:
+          - "{{ phpmyadmin_port }}:80"
+
+    - name: Wait for phpMyAdmin to be ready
+      ansible.builtin.wait_for:
+        host: "127.0.0.1"
+        port: "{{ phpmyadmin_port }}"
+        timeout: 30
