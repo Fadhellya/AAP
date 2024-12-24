@@ -1,6 +1,6 @@
 ---
 - name: Deploy Nginx container using Docker
-  hosts: all
+  hosts: devops
   become: yes
 
   tasks:
