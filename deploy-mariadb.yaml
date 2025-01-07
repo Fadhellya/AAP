@@ -1,6 +1,6 @@
 ---
 - name: Setup Docker environment for MariaDB and phpMyAdmin
-  hosts: devops
+  hosts: docker
   tasks:
     - name: Create Docker network
       ansible.builtin.docker_network:
