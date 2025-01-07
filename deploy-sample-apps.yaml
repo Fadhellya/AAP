@@ -1,0 +1,48 @@
+---
+#test
+- name: Jalankan container dari image
+  hosts: docker
+  become: true
+  tasks:
+    - name: Tarik image Docker
+      community.docker.docker_image:
+        name: "{{ docker_image_name }}"
+        tag: "20241108-1719"
+        source: pull
+
+    - name: Hentikan container jika sudah berjalan
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        state: stopped
+      ignore_errors: true
+
+    - name: Hapus container jika sudah ada
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        state: absent
+      ignore_errors: true
+
+    - name: Jalankan container dari image
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        image: "{{ docker_image_name }}:20241108-1719"
+        state: started
+        restart_policy: always
+        ports:
+          - "{{ host_port }}:{{ container_port }}"
+        env:
+          DB_HOST: "{{ db_host }}"
+          DB_USER: "{{ db_user }}"
+          DB_PASS: "{{ db_pass }}"
+          DB_NAME: "{{ db_name }}"
+        networks:
+          - name: "{{ docker_network_name }}"
+
+    - name: Verifikasi container berjalan
+      community.docker.docker_container_info:
+        name: "{{ container_name }}"
+      register: container_info
+
+    - name: Tampilkan informasi container
+      ansible.builtin.debug:
+        var: container_info
