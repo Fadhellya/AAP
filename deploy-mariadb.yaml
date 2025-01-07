@@ -7,6 +7,11 @@
         name: "{{ docker_network_name }}"
         driver: bridge
 
+    - name: Create Docker volume for MariaDB data
+      ansible.builtin.docker_volume:
+        name: "{{ mariadb_data_volume }}"
+        state: present
+
     - name: Run MariaDB container
       ansible.builtin.docker_container:
         name: "{{ mariadb_container_name }}"
@@ -22,6 +27,8 @@
           MYSQL_PASSWORD: "{{ mariadb_password }}"
         ports:
           - "{{ mariadb_port }}:3306"
+        volumes:
+          - "{{ mariadb_data_volume }}:/var/lib/mysql" 
 
     - name: Wait for MariaDB to be ready
       ansible.builtin.wait_for:
@@ -40,7 +47,7 @@
           - "{{ phpmyadmin_port }}:80"
         networks:
           - name: "{{ docker_network_name }}"
-          
+
     - name: Wait for phpMyAdmin to be ready
       ansible.builtin.wait_for:
         host: "127.0.0.1"
