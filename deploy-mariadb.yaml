@@ -39,10 +39,10 @@
         name: "{{ phpmyadmin_container_name }}"
         image: "{{ phpmyadmin_image }}"
         env:
-          PMA_HOST: "{{ mariadb_container_name }}"  # Gunakan nama container MariaDB sebagai host
-          PMA_PORT: "3306"  # Port internal MariaDB
+          PMA_HOST: "{{ mariadb_container_name }}" 
+          PMA_PORT: "3306" 
         ports:
-          - "{{ phpmyadmin_port }}:80"  # phpMyAdmin tetap diekspos ke host
+          - "{{ phpmyadmin_port }}:80"  
         networks:
           - name: "{{ docker_network_name }}"
 
