@@ -23,14 +23,14 @@
     - name: Hapus image Docker sebelumnya
       community.docker.docker_image:
         name: "{{ docker_image_name }}"
-        tag: "latest"
+        tag: "testing1"
         state: absent
       ignore_errors: true 
 
     - name: Tarik image Docker terbaru
       community.docker.docker_image:
         name: "{{ docker_image_name }}"
-        tag: "latest"
+        tag: "testing1"
         source: pull
 
     - name: Jalankan container dengan image baru
