@@ -2,12 +2,24 @@
 - name: Jalankan container dari image terbaru
   hosts: docker
   tasks:
+    - name: Hentikan container lama jika berjalan
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        state: stopped
+      ignore_errors: true  # Abaikan error jika container tidak ada
+
+    - name: Hapus container lama jika ada
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        state: absent
+      ignore_errors: true  # Abaikan error jika container tidak ada
+
     - name: Hapus image Docker sebelumnya
       community.docker.docker_image:
         name: "{{ docker_image_name }}"
         tag: "latest"
         state: absent
-      ignore_errors: true 
+      ignore_errors: true  # Abaikan error jika image tidak ada
 
     - name: Tarik image Docker terbaru
       community.docker.docker_image:
@@ -30,7 +42,6 @@
           DB_NAME: "{{ db_name }}"
         networks:
           - name: "{{ docker_network_name }}"
-        recreate: true 
 
     - name: Verifikasi container berjalan
       community.docker.docker_container_info:
