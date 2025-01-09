@@ -1,25 +1,32 @@
 ---
 - name: Jalankan container dari image terbaru
   hosts: docker
+  become: true
   tasks:
+    - name: Buat Docker network
+      community.docker.docker_network:
+        name: "{{ docker_network_name }}"
+        driver: bridge
+      ignore_errors: true 
+
     - name: Hentikan container lama jika berjalan
       community.docker.docker_container:
         name: "{{ container_name }}"
         state: stopped
-      ignore_errors: true  # Abaikan error jika container tidak ada
+      ignore_errors: true  
 
     - name: Hapus container lama jika ada
       community.docker.docker_container:
         name: "{{ container_name }}"
         state: absent
-      ignore_errors: true  # Abaikan error jika container tidak ada
+      ignore_errors: true 
 
     - name: Hapus image Docker sebelumnya
       community.docker.docker_image:
         name: "{{ docker_image_name }}"
         tag: "latest"
         state: absent
-      ignore_errors: true  # Abaikan error jika image tidak ada
+      ignore_errors: true 
 
     - name: Tarik image Docker terbaru
       community.docker.docker_image:
