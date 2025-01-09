@@ -36,7 +36,7 @@
     - name: Jalankan container dengan image baru
       community.docker.docker_container:
         name: "{{ container_name }}"
-        image: "{{ docker_image_name }}:latest"
+        image: "{{ docker_image_name }}:20241121-0958"
         state: started
         restart_policy: always
         ports:
