@@ -1,31 +1,18 @@
 ---
-#test
-- name: Jalankan container dari image
+- name: Jalankan container dari image terbaru
   hosts: docker
   become: true
   tasks:
-    - name: Tarik image Docker
+    - name: Tarik image Docker terbaru
       community.docker.docker_image:
         name: "{{ docker_image_name }}"
-        tag: "20241108-1719"
+        tag: "latest" 
         source: pull
 
-    - name: Hentikan container jika sudah berjalan
+    - name: Jalankan container dengan image baru
       community.docker.docker_container:
         name: "{{ container_name }}"
-        state: stopped
-      ignore_errors: true
-
-    - name: Hapus container jika sudah ada
-      community.docker.docker_container:
-        name: "{{ container_name }}"
-        state: absent
-      ignore_errors: true
-
-    - name: Jalankan container dari image
-      community.docker.docker_container:
-        name: "{{ container_name }}"
-        image: "{{ docker_image_name }}:20241108-1719"
+        image: "{{ docker_image_name }}:latest"
         state: started
         restart_policy: always
         ports:
@@ -37,6 +24,7 @@
           DB_NAME: "{{ db_name }}"
         networks:
           - name: "{{ docker_network_name }}"
+        recreate: true 
 
     - name: Verifikasi container berjalan
       community.docker.docker_container_info:
