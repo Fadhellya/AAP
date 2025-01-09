@@ -28,12 +28,6 @@
         volumes:
           - "{{ mariadb_data_volume }}:/var/lib/mysql" 
 
-    - name: Wait for MariaDB to be ready
-      ansible.builtin.wait_for:
-        host: "{{ mariadb_container_name }}"
-        port: 3306
-        timeout: 30
-
     - name: Run phpMyAdmin container
       ansible.builtin.docker_container:
         name: "{{ phpmyadmin_container_name }}"
