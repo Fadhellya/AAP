@@ -2,10 +2,17 @@
 - name: Jalankan container dari image terbaru
   hosts: docker
   tasks:
+    - name: Hapus image Docker sebelumnya
+      community.docker.docker_image:
+        name: "{{ docker_image_name }}"
+        tag: "latest"
+        state: absent
+      ignore_errors: true 
+
     - name: Tarik image Docker terbaru
       community.docker.docker_image:
         name: "{{ docker_image_name }}"
-        tag: "latest" 
+        tag: "latest"
         source: pull
 
     - name: Jalankan container dengan image baru
