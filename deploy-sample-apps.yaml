@@ -1,7 +1,6 @@
 ---
 - name: Jalankan container dari image terbaru
   hosts: docker
-  become: true
   tasks:
     - name: Tarik image Docker terbaru
       community.docker.docker_image:
