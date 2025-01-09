@@ -23,20 +23,20 @@
     - name: Hapus image Docker sebelumnya
       community.docker.docker_image:
         name: "{{ docker_image_name }}"
-        tag: "20241121-0958"
+        tag: "testing2"
         state: absent
       ignore_errors: true 
 
     - name: Tarik image Docker terbaru
       community.docker.docker_image:
         name: "{{ docker_image_name }}"
-        tag: "20241121-0958"
+        tag: "testing2"
         source: pull
 
     - name: Jalankan container dengan image baru
       community.docker.docker_container:
         name: "{{ container_name }}"
-        image: "{{ docker_image_name }}:20241121-0958"
+        image: "{{ docker_image_name }}:testing2"
         state: started
         restart_policy: always
         ports:
