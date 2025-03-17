@@ -1,0 +1,39 @@
+---
+- name: Multi User and Group Management with Sudo Option
+  hosts: "{{ target_hosts }}"
+  become: true
+  tasks:
+    - name: Ensure Groups Exist
+      group:
+        name: "{{ item.groups }}"
+        state: present
+      loop: "{{ user_list | from_json }}"
+      loop_control:
+        label: "{{ item.groups }}"
+
+    - name: Manage Users
+      user:
+        name: "{{ item.username }}"
+        password: "{{ item.password | password_hash('sha512') }}"
+        shell: "{{ item.shell }}"
+        home: "{{ item.home }}"
+        groups: "{{ item.groups }}"
+        state: "{{ item.state }}"
+      loop: "{{ user_list | from_json }}"
+      loop_control:
+        label: "{{ item.username }}"
+
+    - name: Grant Sudo Access (if enabled)
+      copy:
+        dest: "/etc/sudoers.d/{{ item.username }}"
+        content: "{{ item.username }} ALL=(ALL) NOPASSWD:ALL"
+        mode: '0440'
+      when: item.sudo | default(false) | bool
+      loop: "{{ user_list | from_json }}"
+
+    - name: Remove Sudo Access (if disabled)
+      file:
+        path: "/etc/sudoers.d/{{ item.username }}"
+        state: absent
+      when: not item.sudo | default(false) | bool
+      loop: "{{ user_list | from_json }}"
