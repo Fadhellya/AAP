@@ -1,0 +1,58 @@
+---
+- name: Manage LVM on RHEL
+  hosts: "{{ target_host }}"
+  become: true
+  tasks:
+    - name: Check if disk exists
+      command: lsblk -o NAME -n | grep "^{{ disk_name }}"
+      register: disk_info
+      changed_when: false
+      failed_when: false
+
+    - name: Fail if disk does not exist
+      fail:
+        msg: "Disk {{ disk_name }} not found!"
+      when: disk_info.rc != 0
+
+    - name: Create Physical Volume (PV)
+      command: pvcreate /dev/{{ disk_name }}
+      args:
+        creates: "/dev/{{ disk_name }}"
+
+    - name: Check if Volume Group exists
+      command: vgs --noheadings -o vg_name | grep "^{{ volume_group }}"
+      register: vg_check
+      changed_when: false
+      failed_when: false
+
+    - name: Create Volume Group (VG) if not exists
+      command: vgcreate {{ volume_group }} /dev/{{ disk_name }}
+      when: vg_check.rc != 0
+
+    - name: Create Logical Volume (LV)
+      command: lvcreate -L {{ lvm_size_mib }}M -n {{ logical_volume }} {{ volume_group }}
+      args:
+        creates: "/dev/{{ volume_group }}/{{ logical_volume }}"
+
+    - name: Format Logical Volume
+      filesystem:
+        fstype: "{{ filesystem_type }}"
+        dev: "/dev/{{ volume_group }}/{{ logical_volume }}"
+
+    - name: Ensure mount point exists
+      file:
+        path: "{{ mount_point }}"
+        state: directory
+
+    - name: Mount LVM volume
+      mount:
+        path: "{{ mount_point }}"
+        src: "/dev/{{ volume_group }}/{{ logical_volume }}"
+        fstype: "{{ filesystem_type }}"
+        state: mounted
+
+    - name: Persist mount in fstab
+      lineinfile:
+        path: /etc/fstab
+        line: "/dev/{{ volume_group }}/{{ logical_volume }} {{ mount_point }} {{ filesystem_type }} defaults 0 0"
+        state: present
