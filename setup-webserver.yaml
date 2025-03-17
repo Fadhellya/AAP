@@ -1,6 +1,6 @@
 ---
-- name: Setup Apache Web Server with Custom Port and SELinux Configuration
-  hosts: vsphere
+- name: Setup Apache Web Server with Custom Variables
+  hosts: "{{ target_hosts }}"
   become: true
   tasks:
     - name: Install Apache (httpd)
@@ -8,21 +8,21 @@
         name: httpd
         state: present
 
-    - name: Allow Apache to Bind on Port 88 (SELinux)
-      command: semanage port -a -t http_port_t -p tcp 88
+    - name: Allow Apache to Bind on Custom Port (SELinux)
+      command: semanage port -a -t http_port_t -p tcp {{ apache_port }}
       register: selinux_result
       failed_when: "'already defined' not in selinux_result.stderr and selinux_result.rc != 0"
       ignore_errors: true
 
-    - name: Update Apache to Listen on Port 88
+    - name: Update Apache to Listen on Custom Port
       lineinfile:
         path: /etc/httpd/conf/httpd.conf
         regexp: '^Listen '
-        line: 'Listen 88'
+        line: 'Listen {{ apache_port }}'
 
-    - name: Open Port 88 in Firewalld
+    - name: Open Custom Port in Firewalld
       firewalld:
-        port: 88/tcp
+        port: "{{ apache_port }}/tcp"
         permanent: true
         state: enabled
         immediate: true
@@ -31,11 +31,7 @@
     - name: Create Web Page
       copy:
         dest: /var/www/html/index.html
-        content: |
-          <html>
-          <head><title>Welcome</title></head>
-          <body><h1>Apache Web Server is Running on Port 88</h1></body>
-          </html>
+        content: "{{ html_content }}"
 
     - name: Restart Apache to Apply Changes
       systemd:
