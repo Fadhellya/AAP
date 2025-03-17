@@ -1,2 +1,5 @@
 collections:
   - name: community.docker
+  - name: ansible.posix
+  - name: ansible.builtin
+  - name: community.general
