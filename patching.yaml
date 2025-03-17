@@ -1,0 +1,42 @@
+---
+- name: System Patching and Update
+  hosts: vsphere
+  become: true
+  tasks:
+    - name: Check OS Family
+      debug:
+        msg: "Running patching on {{ ansible_os_family }}"
+
+    - name: Update all packages (RedHat-based)
+      yum:
+        name: '*'
+        state: latest
+      when: ansible_os_family == "RedHat"
+
+    - name: Update all packages (Debian-based)
+      apt:
+        update_cache: yes
+        upgrade: dist
+      when: ansible_os_family == "Debian"
+
+    - name: Check if Reboot is Required (Debian-based)
+      stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+      when: ansible_os_family == "Debian"
+
+    - name: Reboot System if Required (Debian-based)
+      reboot:
+      when: reboot_required.stat.exists
+
+    - name: Reboot System if Kernel Updated (RedHat-based)
+      command: needs-restarting -r
+      register: kernel_update
+      failed_when: kernel_update.rc > 1
+      changed_when: kernel_update.rc == 1
+      ignore_errors: true
+      when: ansible_os_family == "RedHat"
+
+    - name: Reboot if Required (RedHat-based)
+      reboot:
+      when: kernel_update.rc == 1
