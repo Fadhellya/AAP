@@ -1,0 +1,44 @@
+---
+- name: Setup Apache Web Server with Custom Port and SELinux Configuration
+  hosts: vsphere
+  become: true
+  tasks:
+    - name: Install Apache (httpd)
+      yum:
+        name: httpd
+        state: present
+
+    - name: Allow Apache to Bind on Port 88 (SELinux)
+      command: semanage port -a -t http_port_t -p tcp 88
+      register: selinux_result
+      failed_when: "'already defined' not in selinux_result.stderr and selinux_result.rc != 0"
+      ignore_errors: true
+
+    - name: Update Apache to Listen on Port 88
+      lineinfile:
+        path: /etc/httpd/conf/httpd.conf
+        regexp: '^Listen '
+        line: 'Listen 88'
+
+    - name: Open Port 88 in Firewalld
+      firewalld:
+        port: 88/tcp
+        permanent: true
+        state: enabled
+        immediate: true
+      when: ansible_os_family == "RedHat"
+
+    - name: Create Web Page
+      copy:
+        dest: /var/www/html/index.html
+        content: |
+          <html>
+          <head><title>Welcome</title></head>
+          <body><h1>Apache Web Server is Running on Port 88</h1></body>
+          </html>
+
+    - name: Restart Apache to Apply Changes
+      systemd:
+        name: httpd
+        state: restarted
+        enabled: true
