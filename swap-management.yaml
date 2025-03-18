@@ -1,0 +1,65 @@
+---
+- name: Configure SWAP with LVM
+  hosts: "{{ target_hosts }}"
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Install LVM tools
+      yum:
+        name: lvm2
+        state: present
+
+    - name: Check available space on disk
+      command: lsblk -b -o NAME,SIZE /dev/{{ disk }}
+      register: disk_info
+      changed_when: false
+
+    - name: Fail if disk is too small
+      fail:
+        msg: "Disk size is too small for the requested partition"
+      when: disk_info.stdout_lines | select('search', disk) | list | length == 0
+
+    - name: Partition the drive
+      parted:
+        device: "/dev/{{ disk }}"
+        label: gpt
+        number: 1
+        state: present
+        part_start: 0%
+        part_end: "{{ swap_size }}MB"
+
+    - name: Create volume group
+      community.general.lvg:
+        pvs: "/dev/{{ disk }}1"
+        vg: "{{ vg_name }}"
+
+    - name: Create logical volume
+      community.general.lvol:
+        lv: "{{ lv_name }}"
+        size: 100%VG
+        vg: "{{ vg_name }}"
+
+    - name: Format as swap
+      community.general.filesystem:
+        dev: "/dev/{{ vg_name }}/{{ lv_name }}"
+        fstype: swap
+
+    - name: Ensure swap entry in /etc/fstab
+      lineinfile:
+        path: /etc/fstab
+        line: "/dev/{{ vg_name }}/{{ lv_name }} swap swap defaults 0 0"
+        state: present
+
+    - name: Check if swap is active
+      command: swapon --summary
+      register: swap_status
+      changed_when: false
+
+    - name: Enable swap if not active
+      command: swapon /dev/{{ vg_name }}/{{ lv_name }}
+      when: "'/dev/{{ vg_name }}/{{ lv_name }}' not in swap_status.stdout"
+      notify: Restart Swap
+
+  handlers:
+    - name: Restart Swap
+      command: swapoff -a && swapon -a
