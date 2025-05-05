@@ -31,7 +31,7 @@
     - name: Create Web Page
       copy:
         dest: /var/www/html/index.html
-        content: "{{ html_content }}"
+        content: "{{ html_content | default('<html><body><h1>Hello from ' ~ ansible_default_ipv4.address ~ '</h1></body></html>') }}"
 
     - name: Restart Apache to Apply Changes
       systemd:
