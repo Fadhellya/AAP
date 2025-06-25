@@ -1,7 +1,6 @@
 ---
 - name: Setup Apache Web Server with Custom Variables
   hosts: "{{ target_hosts }}"
-  become: true
   tasks:
     - name: Install Apache (httpd)
       yum:
