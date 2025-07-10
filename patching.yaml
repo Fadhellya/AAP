@@ -11,6 +11,7 @@
       yum:
         name: '*'
         state: latest
+        security: yes
       when: ansible_os_family == "RedHat"
 
     - name: Update all packages (Debian-based)
