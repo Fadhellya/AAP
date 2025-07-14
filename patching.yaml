@@ -1,6 +1,6 @@
 ---
 - name: System Patching and Update
-  hosts: vsphere
+  hosts: all
   become: true
   tasks:
     - name: Check OS Family
