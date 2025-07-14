@@ -28,7 +28,9 @@
 
     - name: Reboot System if Required (Debian-based)
       reboot:
-      when: reboot_required.stat.exists
+      when:
+        - ansible_os_family == "Debian"
+        - reboot_required.stat.exists
 
     - name: Reboot System if Kernel Updated (RedHat-based)
       command: needs-restarting -r
