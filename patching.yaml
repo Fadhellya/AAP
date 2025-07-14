@@ -26,20 +26,6 @@
       register: reboot_required
       when: ansible_os_family == "Debian"
 
-    - name: Reboot System if Required (Debian-based)
-      reboot:
-      when:
-        - ansible_os_family == "Debian"
-        - reboot_required.stat.exists
-
-    - name: Reboot System if Kernel Updated (RedHat-based)
-      command: needs-restarting -r
-      register: kernel_update
-      failed_when: kernel_update.rc > 1
-      changed_when: kernel_update.rc == 1
-      ignore_errors: true
-      when: ansible_os_family == "RedHat"
-
     - name: Reboot if Required (RedHat-based)
       reboot:
       when: kernel_update.rc == 1
