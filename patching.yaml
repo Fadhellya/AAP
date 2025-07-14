@@ -19,13 +19,3 @@
         update_cache: yes
         upgrade: dist
       when: ansible_os_family == "Debian"
-
-    - name: Check if Reboot is Required (Debian-based)
-      stat:
-        path: /var/run/reboot-required
-      register: reboot_required
-      when: ansible_os_family == "Debian"
-
-    - name: Reboot if Required (RedHat-based)
-      reboot:
-      when: kernel_update.rc == 1
