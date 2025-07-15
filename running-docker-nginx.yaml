@@ -64,12 +64,6 @@
             update_cache: yes
       when: ansible_os_family == "Debian"
 
-    # Instalasi Python SDK yang dibutuhkan oleh modul Ansible Docker
-    - name: Install Docker SDK for Python
-      ansible.builtin.pip:
-        name: docker
-        state: present
-
   # Task utama untuk menjalankan container
   tasks:
     - name: Ensure Docker service is running
