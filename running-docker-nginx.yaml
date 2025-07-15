@@ -7,22 +7,24 @@
     # Blok untuk instalasi pada sistem berbasis RedHat (CentOS, RHEL, dll.)
     - name: Install Docker on RedHat-based systems
       block:
-        - name: Install required packages for yum
+        - name: Install required packages for DNF
           ansible.builtin.yum:
-            name: yum-utils
+            name: dnf-plugins-core  
             state: present
 
         - name: Add Docker repository
           ansible.builtin.get_url:
-            url: https://download.docker.com/linux/centos/docker-ce.repo
+            url: https://download.docker.com/linux/rhel/docker-ce.repo 
             dest: /etc/yum.repos.d/docker-ce.repo
 
-        - name: Install Docker Engine
+        - name: Install Docker Engine and plugins
           ansible.builtin.yum:
             name:
               - docker-ce
               - docker-ce-cli
               - containerd.io
+              - docker-buildx-plugin
+              - docker-compose-plugin   
             state: present
       when: ansible_os_family == "RedHat"
 
