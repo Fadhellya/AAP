@@ -11,11 +11,13 @@
           ansible.builtin.yum:
             name: dnf-plugins-core  
             state: present
+          check_mode: no
 
         - name: Add Docker repository
           ansible.builtin.get_url:
             url: https://download.docker.com/linux/rhel/docker-ce.repo 
             dest: /etc/yum.repos.d/docker-ce.repo
+          check_mode: no
 
         - name: Install Docker Engine and plugins
           ansible.builtin.yum:
