@@ -8,8 +8,6 @@
         msg: "Running patching on {{ ansible_os_family }}"
 
     - name: Update all packages (RedHat-based)
-      yum:
-        name: '*'
-        state: latest
-        security: yes
+      dnf:
+        security: true
       when: ansible_os_family == "RedHat"
